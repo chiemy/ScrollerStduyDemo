@@ -10,4 +10,11 @@
 
     </com.chiemy.demo.scrollerstudydemo.MultiViewGroup>
 
+    <com.chiemy.demo.scrollerstudydemo.WheelView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </com.chiemy.demo.scrollerstudydemo.WheelView>
+
+
 </RelativeLayout>
