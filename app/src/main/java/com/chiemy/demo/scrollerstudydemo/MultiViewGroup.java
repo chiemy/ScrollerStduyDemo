@@ -98,6 +98,7 @@ public class MultiViewGroup extends ViewGroup {
         if (!scroller.isFinished()) {
             scroller.computeScrollOffset();
             scrollTo(scroller.getCurrX(), 0);
+            postInvalidate();
         }
     }
 
@@ -105,6 +106,12 @@ public class MultiViewGroup extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         boolean result = gestureDetector.onTouchEvent(event);
         if (!result) {
+            if(event.getAction() == MotionEvent.ACTION_UP){
+                int currentPosition = (int)((float)getScrollX() / width + 0.5f);
+                int dx = currentPosition * width - getScrollX();
+                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
+                postInvalidate();
+            }
             return super.onTouchEvent(event);
         }
         return result;
@@ -112,6 +119,7 @@ public class MultiViewGroup extends ViewGroup {
 
     private int currentX;
     private class MGestureListener extends GestureDetector.SimpleOnGestureListener{
+        private boolean fling;
         @Override
         public boolean onDown(MotionEvent e) {
             scroller.forceFinished(true);
@@ -121,20 +129,36 @@ public class MultiViewGroup extends ViewGroup {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            scrollBy((int) distanceX, 0);
-            if(getScrollX() <= 0){
-                scrollTo(0, 0);
-            }else if(getScrollX() >= maxScrollX){
-                scrollTo(maxScrollX, 0);
+            float distanceToBe = getScrollX() + distanceX;
+            if(distanceToBe >= 0 && distanceToBe <= maxScrollX){
+                scrollBy((int) distanceX, 0);
             }
-            return super.onScroll(e1, e2, distanceX, distanceY);
+            return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            scroller.fling(getScrollX(), 0, -(int) velocityX / SCALE, 0, 0, maxScrollX, 0, 0);
-            postInvalidate();
-            return super.onFling(e1, e2, velocityX, velocityY);
+            //scroller.fling(getScrollX(), 0, -(int) velocityX / SCALE, 0, 0, getScrollX() + width, 0, 0);
+            fling = true;
+            int dx;
+            if(velocityX < 0){ // 手指向左滑动，下一个
+                dx = width - getScrollX() % width;
+            }else{ // 向左
+                dx = -getScrollX() % width;
+            }
+            float distanceToBe = getScrollX() + dx;
+            if(distanceToBe >= 0 && distanceToBe <= maxScrollX){
+                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
+                postInvalidate();
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            boolean consumed = fling;
+            fling = false;
+            return consumed;
         }
     }
 }
