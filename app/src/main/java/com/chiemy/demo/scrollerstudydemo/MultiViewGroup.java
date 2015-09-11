@@ -3,6 +3,7 @@ package com.chiemy.demo.scrollerstudydemo;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -106,14 +107,22 @@ public class MultiViewGroup extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         boolean result = gestureDetector.onTouchEvent(event);
         if (!result) {
+            if(event.getAction() == MotionEvent.ACTION_UP && !fling){
+                Log.d("", "ACTION_UP");
+                int currentPosition = (int)((float)getScrollX() / width + 0.5f);
+                int dx = currentPosition * width - getScrollX();
+                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
+                postInvalidate();
+            }
             return super.onTouchEvent(event);
         }
         return result;
     }
 
-    private int currentX;
+    private boolean fling;
+
     private class MGestureListener extends GestureDetector.SimpleOnGestureListener{
-        private boolean fling;
+
         @Override
         public boolean onDown(MotionEvent e) {
             fling = false;
@@ -124,6 +133,8 @@ public class MultiViewGroup extends ViewGroup {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            Log.d("", "onScroll");
+            fling = false;
             float distanceToBe = getScrollX() + distanceX;
             if(distanceToBe >= 0 && distanceToBe <= maxScrollX){
                 scrollBy((int) distanceX, 0);
@@ -134,6 +145,7 @@ public class MultiViewGroup extends ViewGroup {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             //scroller.fling(getScrollX(), 0, -(int) velocityX / SCALE, 0, 0, getScrollX() + width, 0, 0);
+            Log.d("", "onFling");
             fling = true;
             int dx;
             if(velocityX < 0){ // 手指向左滑动，下一个
@@ -147,19 +159,6 @@ public class MultiViewGroup extends ViewGroup {
                 postInvalidate();
             }
             return true;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            if(!fling){
-                int currentPosition = (int)((float)getScrollX() / width + 0.5f);
-                int dx = currentPosition * width - getScrollX();
-                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
-                postInvalidate();
-                return true;
-            }
-            fling = false;
-            return false;
         }
     }
 }
