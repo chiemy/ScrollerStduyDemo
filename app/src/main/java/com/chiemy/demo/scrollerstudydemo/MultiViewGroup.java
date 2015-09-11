@@ -106,12 +106,6 @@ public class MultiViewGroup extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         boolean result = gestureDetector.onTouchEvent(event);
         if (!result) {
-            if(event.getAction() == MotionEvent.ACTION_UP){
-                int currentPosition = (int)((float)getScrollX() / width + 0.5f);
-                int dx = currentPosition * width - getScrollX();
-                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
-                postInvalidate();
-            }
             return super.onTouchEvent(event);
         }
         return result;
@@ -122,6 +116,7 @@ public class MultiViewGroup extends ViewGroup {
         private boolean fling;
         @Override
         public boolean onDown(MotionEvent e) {
+            fling = false;
             scroller.forceFinished(true);
             // 返回true才能接收其他事件
             return true;
@@ -156,9 +151,15 @@ public class MultiViewGroup extends ViewGroup {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            boolean consumed = fling;
+            if(!fling){
+                int currentPosition = (int)((float)getScrollX() / width + 0.5f);
+                int dx = currentPosition * width - getScrollX();
+                scroller.startScroll(getScrollX(), 0, dx, 0, 300);
+                postInvalidate();
+                return true;
+            }
             fling = false;
-            return consumed;
+            return false;
         }
     }
 }
